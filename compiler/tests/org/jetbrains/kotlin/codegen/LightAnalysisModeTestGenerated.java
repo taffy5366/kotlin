@@ -11214,6 +11214,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             runTest("compiler/testData/codegen/box/inlineClasses/checkLambdaWithInlineClassesInFunctionalType.kt");
         }
 
+        @TestMetadata("checkPlusOfUInt.kt")
+        public void testCheckPlusOfUInt() throws Exception {
+            runTest("compiler/testData/codegen/box/inlineClasses/checkPlusOfUInt.kt");
+        }
+
         @TestMetadata("checkUnboxingResultFromTypeVariable.kt")
         public void testCheckUnboxingResultFromTypeVariable() throws Exception {
             runTest("compiler/testData/codegen/box/inlineClasses/checkUnboxingResultFromTypeVariable.kt");
