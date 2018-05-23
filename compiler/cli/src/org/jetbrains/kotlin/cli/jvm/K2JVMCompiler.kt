@@ -361,6 +361,16 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
                 constructorCallNormalizationMode ?: JVMConstructorCallNormalizationMode.DEFAULT
             )
 
+            val jvmDefaultMode = JvmDefaultMode.fromStringOrNull(arguments.jvmDefaultMode)
+            if (jvmDefaultMode == null) {
+                configuration.getNotNull(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY).report(
+                    CompilerMessageSeverity.ERROR,
+                    "Unknown constructor @JvmDefault compilation mode: $jvmDefaultMode, " +
+                            "supported modes: ${JvmDefaultMode.values().map { it.description }}"
+                )
+            }
+            configuration.put(JVMConfigurationKeys.JVM_DEFAULT_MODE, jvmDefaultMode ?: JvmDefaultMode.DEFAULT)
+
             val assertionsMode =
                 JVMAssertionsMode.fromStringOrNull(arguments.assertionsMode)
             if (assertionsMode == null) {
