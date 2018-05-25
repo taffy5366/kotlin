@@ -5,38 +5,57 @@
 
 package org.jetbrains.kotlin.codegen.state
 
+import org.jetbrains.kotlin.codegen.AnnotationCodegen
+import org.jetbrains.kotlin.types.KotlinType
+
 private const val DEFERRED_TYPE_CLASSNAME_PREFIX = "error/DeferredType"
 
 interface DeferredTypesTracker {
+    class TypeInfo(val jvmDescriptorOrGenericSignature: String, val nullabilityAnnotation: Class<*>?)
+
     /**
      * @return internal name to use as a stub for the deferred type
      */
     fun registerDeferredTypeComputation(
+        kotlinType: KotlinType,
         deferredJvmTypeRepresentation: () -> String
     ): String
 
     /**
      * @param typeText text representation of a type (i.e., its source code representation)
      */
-    fun getDeferredTypeComputation(typeText: String): Function0<String>?
+    fun getDeferredTypeInfoComputation(typeText: String): Function0<TypeInfo>?
 
     object Throwing : DeferredTypesTracker {
-        override fun registerDeferredTypeComputation(deferredJvmTypeRepresentation: () -> String) = throw IllegalStateException()
-        override fun getDeferredTypeComputation(typeText: String): Function0<String>? = throw IllegalStateException()
+        override fun registerDeferredTypeComputation(
+            kotlinType: KotlinType,
+            deferredJvmTypeRepresentation: () -> String
+        ) = throw IllegalStateException()
+
+        override fun getDeferredTypeInfoComputation(typeText: String): Function0<TypeInfo>? = throw IllegalStateException()
     }
 }
 
 class DeferredTypesTrackerImpl : DeferredTypesTracker {
-    private val deferredTypesMap: MutableMap<String, () -> String> = mutableMapOf()
+    private val typeInfoComputations: MutableMap<String, () -> DeferredTypesTracker.TypeInfo> = mutableMapOf()
 
     override fun registerDeferredTypeComputation(
+        kotlinType: KotlinType,
         deferredJvmTypeRepresentation: () -> String
     ): String {
-        val internalName = DEFERRED_TYPE_CLASSNAME_PREFIX + deferredTypesMap.size
-        deferredTypesMap[internalName] = deferredJvmTypeRepresentation
+        val internalName = DEFERRED_TYPE_CLASSNAME_PREFIX + typeInfoComputations.size
+
+        val computation by lazy(LazyThreadSafetyMode.PUBLICATION) {
+            DeferredTypesTracker.TypeInfo(
+                deferredJvmTypeRepresentation(),
+                AnnotationCodegen.getNullabilityAnnotationFromType(kotlinType)
+            )
+        }
+
+        typeInfoComputations[internalName] = { computation }
         return internalName
     }
 
-    override fun getDeferredTypeComputation(typeText: String): Function0<String>? =
-        deferredTypesMap[typeText.replace('.', '/')]
+    override fun getDeferredTypeInfoComputation(typeText: String): Function0<DeferredTypesTracker.TypeInfo>? =
+        typeInfoComputations[typeText.replace('.', '/')]
 }

@@ -438,7 +438,7 @@ public class KotlinTypeMapper {
     ) {
         assert !classBuilderMode.generateBodies : "Deferred types in backend in non-light class mode";
 
-        String internalName = deferredTypesTracker.registerDeferredTypeComputation(() -> {
+        String internalName = deferredTypesTracker.registerDeferredTypeComputation(returnType, () -> {
             BothSignatureWriter visitor = new BothSignatureWriter(BothSignatureWriter.Mode.TYPE);
             returnType.unwrap();
             typeComputation.accept(visitor);

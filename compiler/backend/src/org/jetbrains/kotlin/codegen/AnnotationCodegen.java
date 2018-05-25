@@ -30,10 +30,8 @@ import org.jetbrains.kotlin.name.Name;
 import org.jetbrains.kotlin.resolve.AnnotationChecker;
 import org.jetbrains.kotlin.resolve.constants.*;
 import org.jetbrains.kotlin.resolve.descriptorUtil.DescriptorUtilsKt;
-import org.jetbrains.kotlin.types.FlexibleType;
-import org.jetbrains.kotlin.types.FlexibleTypesKt;
-import org.jetbrains.kotlin.types.KotlinType;
-import org.jetbrains.kotlin.types.TypeUtils;
+import org.jetbrains.kotlin.types.*;
+import org.jetbrains.kotlin.types.typeUtil.TypeUtilsKt;
 import org.jetbrains.org.objectweb.asm.*;
 
 import java.lang.annotation.*;
@@ -186,14 +184,26 @@ public abstract class AnnotationCodegen {
     }
 
     private void generateNullabilityAnnotation(@Nullable KotlinType type, @NotNull Set<String> annotationDescriptorsAlreadyPresent) {
-        if (type == null) return;
+        Class<?> annotationClass = getNullabilityAnnotationFromType(type);
+        generateAnnotationIfNotPresent(annotationDescriptorsAlreadyPresent, annotationClass);
+    }
+
+    @Nullable
+    public static Class<?> getNullabilityAnnotationFromType(@Nullable KotlinType type) {
+        if (type == null) return null;
+
+        if (TypeUtilsKt.isWrappedNotComputedType(type)) {
+            // If type hasn't been yet computed return any annotation as a base clsDelegate that will be corrected
+            // when one requests a nullability annotation (see org.jetbrains.kotlin.asJava.elements.KtLightNullabilityAnnotation)
+            return NotNull.class;
+        }
 
         if (isBareTypeParameterWithNullableUpperBound(type)) {
             // This is to account for the case of, say
             //   class Function<R> { fun invoke(): R }
             // it would be a shame to put @Nullable on the return type of the function, and force all callers to check for null,
             // so we put no annotations
-            return;
+            return null;
         }
 
         if (FlexibleTypesKt.isFlexible(type)) {
@@ -203,17 +213,14 @@ public abstract class AnnotationCodegen {
             if (!TypeUtils.isNullableType(flexibleType.getLowerBound()) && TypeUtils.isNullableType(flexibleType.getUpperBound())) {
                 AnnotationDescriptor notNull = type.getAnnotations().findAnnotation(JvmAnnotationNames.JETBRAINS_NOT_NULL_ANNOTATION);
                 if (notNull != null) {
-                    generateAnnotationIfNotPresent(annotationDescriptorsAlreadyPresent, NotNull.class);
+                    return NotNull.class;
                 }
-                return;
+                return null;
             }
         }
 
         boolean isNullableType = TypeUtils.isNullableType(type);
-
-        Class<?> annotationClass = isNullableType ? Nullable.class : NotNull.class;
-
-        generateAnnotationIfNotPresent(annotationDescriptorsAlreadyPresent, annotationClass);
+        return isNullableType ? Nullable.class : NotNull.class;
     }
 
     private static final Map<KotlinTarget, ElementType> annotationTargetMap = new EnumMap<>(KotlinTarget.class);

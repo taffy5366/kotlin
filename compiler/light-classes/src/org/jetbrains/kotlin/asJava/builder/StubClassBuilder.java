@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.asJava.builder;
 
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.compiled.InnerClassSourceStrategy;
-import com.intellij.psi.impl.compiled.SignatureParsing;
 import com.intellij.psi.impl.compiled.StubBuildingVisitor;
 import com.intellij.psi.impl.java.stubs.PsiClassStub;
 import com.intellij.psi.impl.java.stubs.PsiFieldStub;
@@ -26,7 +25,6 @@ import com.intellij.psi.impl.java.stubs.PsiJavaFileStub;
 import com.intellij.psi.impl.java.stubs.PsiMethodStub;
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
-import com.intellij.util.cls.ClsFormatException;
 import com.intellij.util.containers.Stack;
 import kotlin.jvm.functions.Function0;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +42,6 @@ import org.jetbrains.org.objectweb.asm.ClassVisitor;
 import org.jetbrains.org.objectweb.asm.FieldVisitor;
 import org.jetbrains.org.objectweb.asm.MethodVisitor;
 
-import java.text.StringCharacterIterator;
 import java.util.List;
 
 public class StubClassBuilder extends AbstractClassBuilder {
@@ -228,17 +225,9 @@ public class StubClassBuilder extends AbstractClassBuilder {
         }
 
         if (typeText != null) {
-            Function0<String> function0 = deferredTypesTracker.getDeferredTypeComputation(typeText);
-            if (function0 != null) {
-                last.putUserData(DeferredPartsUtilsKt.DEFERRED_RETURN_TYPE, () -> {
-                    String signature = function0.invoke();
-                    try {
-                        return SignatureParsing.parseTypeString(new StringCharacterIterator(signature), StubBuildingVisitor.GUESSING_MAPPER);
-                    }
-                    catch (ClsFormatException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+            Function0<DeferredTypesTracker.TypeInfo> typeInfo = deferredTypesTracker.getDeferredTypeInfoComputation(typeText);
+            if (typeInfo != null) {
+                last.putUserData(DeferredPartsUtilsKt.DEFERRED_TYPE_INFO, typeInfo);
             }
         }
 
