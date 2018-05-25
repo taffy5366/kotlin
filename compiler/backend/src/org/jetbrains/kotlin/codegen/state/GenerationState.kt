@@ -227,7 +227,7 @@ class GenerationState private constructor(
         JVMConstructorCallNormalizationMode.DEFAULT
     )
 
-    val jvmDefaultMode = configuration.get(JVMConfigurationKeys.JVM_DEFAULT_MODE, JvmDefaultMode.DEFAULT)
+    val jvmDefaultMode = languageVersionSettings.getFlag(AnalysisFlag.jvmDefaultMode)
 
     init {
         val disableOptimization = configuration.get(JVMConfigurationKeys.DISABLE_OPTIMIZATION, false)
