@@ -6,8 +6,9 @@ plugins {
     kotlin("jvm")
 }
 
+group = "org.jetbrains.kotlinx"
 // Change this version before publishing
-version = "0.1-SNAPSHOT"
+version = findProperty("kotlinxMetadataDeployVersion") ?: "0.1-SNAPSHOT"
 
 sourceSets {
     "main" { projectDefault() }
