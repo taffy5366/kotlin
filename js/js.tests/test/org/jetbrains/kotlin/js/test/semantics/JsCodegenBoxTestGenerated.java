@@ -9720,6 +9720,11 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             runTest("compiler/testData/codegen/box/inlineClasses/callComputablePropertyInsideInlineClass.kt");
         }
 
+        @TestMetadata("checkBasicUnsignedLiterals.kt")
+        public void testCheckBasicUnsignedLiterals() throws Exception {
+            runTest("compiler/testData/codegen/box/inlineClasses/checkBasicUnsignedLiterals.kt");
+        }
+
         @TestMetadata("checkBoxUnboxOfArgumentsOnInlinedFunctions.kt")
         public void testCheckBoxUnboxOfArgumentsOnInlinedFunctions() throws Exception {
             runTest("compiler/testData/codegen/box/inlineClasses/checkBoxUnboxOfArgumentsOnInlinedFunctions.kt");
@@ -9768,11 +9773,6 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
         @TestMetadata("checkLambdaWithInlineClassesInFunctionalType.kt")
         public void testCheckLambdaWithInlineClassesInFunctionalType() throws Exception {
             runTest("compiler/testData/codegen/box/inlineClasses/checkLambdaWithInlineClassesInFunctionalType.kt");
-        }
-
-        @TestMetadata("checkPlusOfUInt.kt")
-        public void testCheckPlusOfUInt() throws Exception {
-            runTest("compiler/testData/codegen/box/inlineClasses/checkPlusOfUInt.kt");
         }
 
         @TestMetadata("checkUnboxingResultFromTypeVariable.kt")
