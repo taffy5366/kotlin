@@ -7,8 +7,8 @@ plugins {
 }
 
 group = "org.jetbrains.kotlinx"
-// Change this version before publishing
-version = findProperty("kotlinxMetadataDeployVersion") ?: "0.1-SNAPSHOT"
+val deployVersion = findProperty("kotlinxMetadataDeployVersion") as String?
+version = deployVersion ?: "0.1-SNAPSHOT"
 
 sourceSets {
     "main" { projectDefault() }
@@ -60,7 +60,10 @@ sourcesJar {
 }
 
 javadocJar()
-// publish()
+
+if (deployVersion != null) {
+    publish()
+}
 
 projectTest {
     workingDir = rootDir

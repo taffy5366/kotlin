@@ -156,4 +156,12 @@ try {
 ```
 
 
+## Building and publishing
 
+To publish this library use `:kotlinx-metadata-jvm:publish` task and specify the following parameters
+
+  - `-PdelpoyVersion=1.2.nn`: the version of the standard library dependency to put into .pom
+  - `-PkotlinxMetadataDeployVersion=0.0.n`: the version of the library itself
+  - `-PdeployRepoUrl=repository_url`: _(optional)_ the url of repository to deploy to; if not specified, the local directory repository `build/repo` will be used
+  - `-PdeployRepoUsername=username`: _(optional)_ the username to authenticate in the deployment repository
+  - `-PdeployRepoPassword=password`: _(optional)_ the password to authenticate in the deployment repository
