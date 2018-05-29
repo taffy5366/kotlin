@@ -97,7 +97,7 @@ internal class JvmMetadataExtensions : MetadataExtensions {
     ): KmFunctionExtensionVisitor? {
         if (type != JvmFunctionExtensionVisitor.TYPE) return null
         return object : JvmFunctionExtensionVisitor() {
-            override fun visit(desc: JvmMemberSignature?) {
+            override fun visit(desc: JvmMemberSignature.Method?) {
                 if (desc != null) {
                     proto.setExtension(JvmProtoBuf.methodSignature, desc.toJvmMethodSignature(strings))
                 }
@@ -116,7 +116,7 @@ internal class JvmMetadataExtensions : MetadataExtensions {
         return object : JvmPropertyExtensionVisitor() {
             var signature: JvmProtoBuf.JvmPropertySignature.Builder? = null
 
-            override fun visit(fieldDesc: JvmMemberSignature?, getterDesc: JvmMemberSignature?, setterDesc: JvmMemberSignature?) {
+            override fun visit(fieldDesc: JvmMemberSignature.Field?, getterDesc: JvmMemberSignature.Method?, setterDesc: JvmMemberSignature.Method?) {
                 if (fieldDesc == null && getterDesc == null && setterDesc == null) return
 
                 if (signature == null) {
@@ -138,7 +138,7 @@ internal class JvmMetadataExtensions : MetadataExtensions {
                 }
             }
 
-            override fun visitSyntheticMethodForAnnotations(desc: JvmMemberSignature?) {
+            override fun visitSyntheticMethodForAnnotations(desc: JvmMemberSignature.Method?) {
                 if (desc == null) return
 
                 if (signature == null) {
@@ -161,7 +161,7 @@ internal class JvmMetadataExtensions : MetadataExtensions {
     ): KmConstructorExtensionVisitor? {
         if (type != JvmConstructorExtensionVisitor.TYPE) return null
         return object : JvmConstructorExtensionVisitor() {
-            override fun visit(desc: JvmMemberSignature?) {
+            override fun visit(desc: JvmMemberSignature.Method?) {
                 if (desc != null) {
                     proto.setExtension(JvmProtoBuf.constructorSignature, desc.toJvmMethodSignature(strings))
                 }

@@ -41,7 +41,7 @@ class MetadataSmokeTest {
                         if (type != JvmFunctionExtensionVisitor.TYPE) return null
 
                         return object : JvmFunctionExtensionVisitor() {
-                            override fun visit(desc: JvmMemberSignature?) {
+                            override fun visit(desc: JvmMemberSignature.Method?) {
                                 if (Flag.Function.IS_INLINE(flags) && desc != null) {
                                     inlineFunctions += desc.asString()
                                 }

@@ -45,7 +45,7 @@ open class JvmFunctionExtensionVisitor @JvmOverloads constructor(
      *
      * @param desc the signature of the function
      */
-    open fun visit(desc: JvmMemberSignature?) {
+    open fun visit(desc: JvmMemberSignature.Method?) {
         delegate?.visit(desc)
     }
 
@@ -84,7 +84,7 @@ open class JvmPropertyExtensionVisitor @JvmOverloads constructor(
      * @param setterDesc the signature of the property setter in the JVM-based format: `"setX(Ljava/lang/Object;)V"`,
      *                   or `null` if this property has no setter or its signature is unknown
      */
-    open fun visit(fieldDesc: JvmMemberSignature?, getterDesc: JvmMemberSignature?, setterDesc: JvmMemberSignature?) {
+    open fun visit(fieldDesc: JvmMemberSignature.Field?, getterDesc: JvmMemberSignature.Method?, setterDesc: JvmMemberSignature.Method?) {
         delegate?.visit(fieldDesc, getterDesc, setterDesc)
     }
 
@@ -94,7 +94,7 @@ open class JvmPropertyExtensionVisitor @JvmOverloads constructor(
      *
      * @param desc the signature of the synthetic method
      */
-    open fun visitSyntheticMethodForAnnotations(desc: JvmMemberSignature?) {
+    open fun visitSyntheticMethodForAnnotations(desc: JvmMemberSignature.Method?) {
         delegate?.visitSyntheticMethodForAnnotations(desc)
     }
 
@@ -128,7 +128,7 @@ open class JvmConstructorExtensionVisitor @JvmOverloads constructor(
      *
      * @param desc the signature of the constructor
      */
-    open fun visit(desc: JvmMemberSignature?) {
+    open fun visit(desc: JvmMemberSignature.Method?) {
         delegate?.visit(desc)
     }
 

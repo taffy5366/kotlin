@@ -52,7 +52,7 @@ private fun visitFunction(flags: Flags, name: String, addMember: (MemberVisibili
         override fun visitExtensions(type: KmExtensionType): KmFunctionExtensionVisitor? {
             if (type != JvmFunctionExtensionVisitor.TYPE) return null
             return object : JvmFunctionExtensionVisitor() {
-                override fun visit(desc: JvmMemberSignature?) {
+                override fun visit(desc: JvmMemberSignature.Method?) {
                     jvmDesc = desc
                 }
             }
@@ -71,7 +71,7 @@ private fun visitConstructor(flags: Flags, addMember: (MemberVisibility) -> Unit
         override fun visitExtensions(type: KmExtensionType): KmConstructorExtensionVisitor? {
             if (type != JvmConstructorExtensionVisitor.TYPE) return null
             return object : JvmConstructorExtensionVisitor() {
-                override fun visit(desc: JvmMemberSignature?) {
+                override fun visit(desc: JvmMemberSignature.Method?) {
                     jvmDesc = desc
                 }
             }
@@ -93,7 +93,7 @@ private fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setter
         override fun visitExtensions(type: KmExtensionType): KmPropertyExtensionVisitor? {
             if (type != JvmPropertyExtensionVisitor.TYPE) return null
             return object : JvmPropertyExtensionVisitor() {
-                override fun visit(fieldDesc: JvmMemberSignature?, getterDesc: JvmMemberSignature?, setterDesc: JvmMemberSignature?) {
+                override fun visit(fieldDesc: JvmMemberSignature.Field?, getterDesc: JvmMemberSignature.Method?, setterDesc: JvmMemberSignature.Method?) {
                     _fieldDesc = fieldDesc
                     _getterDesc = getterDesc
                     _setterDesc = setterDesc

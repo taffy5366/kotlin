@@ -29,7 +29,5 @@ sealed class JvmMemberSignature {
     abstract fun asString(): String
 }
 
-internal fun JvmMemberSignatureImpl.wrapAsPublic() = when (this) {
-    is JvmMemberSignatureImpl.Method -> JvmMemberSignature.Method(name, desc)
-    is JvmMemberSignatureImpl.Field -> JvmMemberSignature.Field(name, desc)
-}
+internal fun JvmMemberSignatureImpl.Method.wrapAsPublic() = JvmMemberSignature.Method(name, desc)
+internal fun JvmMemberSignatureImpl.Field.wrapAsPublic() = JvmMemberSignature.Field(name, desc)
