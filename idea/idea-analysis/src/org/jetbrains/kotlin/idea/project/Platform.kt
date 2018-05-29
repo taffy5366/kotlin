@@ -28,8 +28,7 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.cli.common.arguments.Argument
-import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.*
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
@@ -45,22 +44,6 @@ val KtElement.platform: TargetPlatform
 
 val KtElement.builtIns: KotlinBuiltIns
     get() = getResolutionFacade().moduleDescriptor.builtIns
-
-private val multiPlatformProjectsArg: String by lazy {
-    CommonCompilerArguments::multiPlatform.annotations.filterIsInstance<Argument>().single().value
-}
-
-private val effectSystemArg: String by lazy {
-    CommonCompilerArguments::effectSystem.annotations.filterIsInstance<Argument>().single().value
-}
-
-private val readDeserializedContractsArg: String by lazy {
-    CommonCompilerArguments::readDeserializedContracts.annotations.filterIsInstance<Argument>().single().value
-}
-
-private val newInferenceArg: String by lazy {
-    CommonCompilerArguments::newInference.annotations.filterIsInstance<Argument>().single().value
-}
 
 fun Module.getAndCacheLanguageLevelByDependencies(): LanguageVersion {
     val facetSettings = KotlinFacetSettingsProvider.getInstance(project).getInitializedSettings(this)
@@ -103,11 +86,12 @@ fun Project.getLanguageVersionSettings(
     val apiVersion = ApiVersion.createByLanguageVersion(LanguageVersion.fromVersionString(arguments.apiVersion) ?: languageVersion)
     val compilerSettings = KotlinCompilerSettings.getInstance(this).settings
     val extraLanguageFeatures = getExtraLanguageFeatures(
-        null,
-        CoroutineSupport.byCompilerArguments(KotlinCommonCompilerArgumentsHolder.getInstance(this).settings),
-        compilerSettings,
-        null
-    )
+        TargetPlatformKind.DEFAULT_PLATFORM,
+        compilerSettings.additionalArgumentsAsList
+    ).apply {
+        configureCoroutinesSupport(CoroutineSupport.byCompilerArguments(KotlinCommonCompilerArgumentsHolder.getInstance(this@getLanguageVersionSettings).settings))
+    }
+
     return LanguageVersionSettingsImpl(
         languageVersion, apiVersion,
         arguments.configureAnalysisFlags(MessageCollector.NONE) + extraAnalysisFlags,
@@ -147,10 +131,11 @@ private fun Module.computeLanguageVersionSettings(): LanguageVersionSettings {
 
     val extraLanguageFeatures = getExtraLanguageFeatures(
         facetSettings.targetPlatformKind ?: TargetPlatformKind.Common,
-        facetSettings.coroutineSupport,
-        facetSettings.compilerSettings,
-        this
-    )
+        facetSettings.compilerSettings?.additionalArgumentsAsList.orEmpty()
+    ).apply {
+        configureCoroutinesSupport(facetSettings.coroutineSupport)
+        configureMultiplatformSupport(facetSettings.targetPlatformKind, this@computeLanguageVersionSettings)
+    }
 
     return LanguageVersionSettingsImpl(
         languageVersion,
@@ -176,34 +161,33 @@ private val Module.implementsCommonModule: Boolean
 
 private fun getExtraLanguageFeatures(
     targetPlatformKind: TargetPlatformKind<*>?,
-    coroutineSupport: LanguageFeature.State,
-    compilerSettings: CompilerSettings?,
+    additionalArguments: List<String>
+): MutableMap<LanguageFeature, LanguageFeature.State> {
+    val arguments = when (targetPlatformKind) {
+        is TargetPlatformKind.Jvm -> K2JVMCompilerArguments()
+        TargetPlatformKind.JavaScript -> K2JSCompilerArguments()
+        TargetPlatformKind.Common -> K2MetadataCompilerArguments()
+        else -> return mutableMapOf()
+    }
+
+    parseCommandLineArguments(additionalArguments, arguments)
+
+    return arguments.configureLanguageFeatures(MessageCollector.NONE)
+}
+
+fun MutableMap<LanguageFeature, LanguageFeature.State>.configureCoroutinesSupport(coroutineSupport: LanguageFeature.State) {
+    put(LanguageFeature.Coroutines, coroutineSupport)
+}
+
+fun MutableMap<LanguageFeature, LanguageFeature.State>.configureMultiplatformSupport(
+    targetPlatformKind: TargetPlatformKind<*>?,
     module: Module?
-): Map<LanguageFeature, LanguageFeature.State> {
-    return mutableMapOf<LanguageFeature, LanguageFeature.State>().apply {
-        put(LanguageFeature.Coroutines, coroutineSupport)
-        if (targetPlatformKind == TargetPlatformKind.Common ||
-            // TODO: this is a dirty hack, parse arguments correctly here
-            compilerSettings?.additionalArguments?.contains(multiPlatformProjectsArg) == true ||
-            (module != null && module.implementsCommonModule)
-        ) {
-            put(LanguageFeature.MultiPlatformProjects, LanguageFeature.State.ENABLED)
-        }
-
-        if (compilerSettings?.additionalArguments?.contains(effectSystemArg) == true) {
-            put(LanguageFeature.UseReturnsEffect, LanguageFeature.State.ENABLED)
-            put(LanguageFeature.UseCallsInPlaceEffect, LanguageFeature.State.ENABLED)
-        }
-
-        if (compilerSettings?.additionalArguments?.contains(readDeserializedContractsArg) == true) {
-            put(LanguageFeature.ReadDeserializedContracts, LanguageFeature.State.ENABLED)
-        }
-
-        if (compilerSettings?.additionalArguments?.contains(newInferenceArg) == true) {
-            put(LanguageFeature.NewInference, LanguageFeature.State.ENABLED)
-        }
+) {
+    if (targetPlatformKind == TargetPlatformKind.Common || module?.implementsCommonModule == true) {
+        put(LanguageFeature.MultiPlatformProjects, LanguageFeature.State.ENABLED)
     }
 }
+
 
 val KtElement.languageVersionSettings: LanguageVersionSettings
     get() {
