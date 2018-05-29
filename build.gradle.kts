@@ -398,6 +398,7 @@ tasks {
         (coreLibProjects + listOf(
                 ":kotlin-stdlib:samples",
                 ":kotlin-test:kotlin-test-js:kotlin-test-js-it",
+                ":kotlinx-metadata-jvm",
                 ":tools:binary-compatibility-validator"
         )).forEach {
             dependsOn(it + ":check")
