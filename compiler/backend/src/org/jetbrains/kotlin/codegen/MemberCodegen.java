@@ -726,11 +726,15 @@ public abstract class MemberCodegen<T extends KtPureElement/* TODO: & KtDeclarat
                         public void doGenerateBody(@NotNull ExpressionCodegen codegen, @NotNull JvmMethodSignature signature) {
                             markLineNumberForElement(element.getPsiOrParent(), codegen.v);
                             if (accessorForCallableDescriptor.getAccessorKind() == AccessorKind.JVM_DEFAULT_COMPATIBILITY) {
-                                FunctionDescriptor descriptor = unwrapFakeOverrideToAnyDeclaration(original).getOriginal();
-                                if (descriptor != original) {
+                                FunctionDescriptor descriptor;
+                                if (original.getKind() == SYNTHESIZED) {
+                                    descriptor = unwrapFakeOverrideSkipFirst(original).getOriginal();
                                     descriptor = descriptor
                                             .copy(original.getContainingDeclaration(), descriptor.getModality(), descriptor.getVisibility(),
                                                   descriptor.getKind(), false);
+                                }
+                                else {
+                                    descriptor = original;
                                 }
                                 generateMethodCallTo(descriptor, accessor, codegen.v).coerceTo(signature.getReturnType(), null, codegen.v);
                             }
@@ -891,5 +895,22 @@ public abstract class MemberCodegen<T extends KtPureElement/* TODO: & KtDeclarat
         if (jvmAssertFieldGenerated) return;
         AssertCodegenUtilKt.generateAssertionsDisabledFieldInitialization(this);
         jvmAssertFieldGenerated = true;
+    }
+
+    private static <D extends CallableMemberDescriptor> D unwrapFakeOverrideSkipFirst(@NotNull D descriptor) {
+        Collection<? extends CallableMemberDescriptor> overridden = descriptor.getOverriddenDescriptors();
+        if (overridden.isEmpty()) {
+            throw new IllegalStateException("Fake override should have at least one overridden descriptor: " + descriptor);
+        }
+        descriptor = (D) overridden.iterator().next();
+
+        while (descriptor.getKind() == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) {
+            overridden = descriptor.getOverriddenDescriptors();
+            if (overridden.isEmpty()) {
+                throw new IllegalStateException("Fake override should have at least one overridden descriptor: " + descriptor);
+            }
+            descriptor = (D) overridden.iterator().next();
+        }
+        return descriptor;
     }
 }
