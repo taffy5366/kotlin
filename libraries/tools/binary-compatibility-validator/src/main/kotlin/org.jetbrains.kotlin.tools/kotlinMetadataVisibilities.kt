@@ -86,9 +86,9 @@ private fun visitConstructor(flags: Flags, addMember: (MemberVisibility) -> Unit
 
 private fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags, addMember: (MemberVisibility) -> Unit) =
     object : KmPropertyVisitor() {
-        var _fieldDesc: MemberSignature? = null
-        var _getterDesc: MemberSignature? = null
-        var _setterDesc: MemberSignature? = null
+        var _fieldDesc:JvmMemberSignature? = null
+        var _getterDesc: JvmMemberSignature? = null
+        var _setterDesc: JvmMemberSignature? = null
 
         override fun visitExtensions(type: KmExtensionType): KmPropertyExtensionVisitor? {
             if (type != JvmPropertyExtensionVisitor.TYPE) return null

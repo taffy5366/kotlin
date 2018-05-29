@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.tools
 
 import kotlinx.metadata.Flag
 import kotlinx.metadata.Flags
+import kotlinx.metadata.jvm.JvmMemberSignature as MemberSignature
 
 class ClassVisibility(
     val name: String,
@@ -26,7 +27,6 @@ fun ClassVisibility.findMember(signature: MemberSignature): MemberVisibility? =
 
 
 data class MemberVisibility(val member: MemberSignature, val visibility: Flags?)
-typealias MemberSignature = kotlinx.metadata.jvm.JvmMemberSignature
 
 private fun isPublic(visibility: Flags?, isPublishedApi: Boolean) =
     visibility == null
