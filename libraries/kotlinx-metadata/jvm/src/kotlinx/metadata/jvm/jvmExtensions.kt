@@ -40,8 +40,10 @@ open class JvmFunctionExtensionVisitor @JvmOverloads constructor(
     private val delegate: JvmFunctionExtensionVisitor? = null
 ) : KmFunctionExtensionVisitor {
     /**
-     * Visits the JVM signature of the function, in the JVM-based format: `"equals(Ljava/lang/Object;)Z"`,
+     * Visits the JVM signature of the function in the JVM-based format,
      * or null if the JVM signature of this function is unknown.
+     *
+     * Example: `JvmMemberSignature.Method("equals", "(Ljava/lang/Object;)Z")`
      *
      * @param desc the signature of the function
      */
@@ -77,20 +79,25 @@ open class JvmPropertyExtensionVisitor @JvmOverloads constructor(
     /**
      * Visits JVM signatures of field and accessors generated for the property.
      *
-     * @param fieldName the name of the field, or `null` if this property has no field
-     * @param fieldTypeDesc the type of the field in the JVM-based format (`"Ljava/lang/Object;"`), or `null` if this property has no field
-     * @param getterDesc the signature of the property getter in the JVM-based format: `"getX()Ljava/lang/Object;"`,
-     *                   or `null` if this property has no getter or its signature is unknown
-     * @param setterDesc the signature of the property setter in the JVM-based format: `"setX(Ljava/lang/Object;)V"`,
+     * @param fieldDesc the name and the type of the field in the JVM-based format, or `null` if this property has no field.
+     *                  Example: `JvmMemberSignature.Field("X", "Ljava/lang/Object;")`
+     *
+     * @param getterDesc the signature of the property getter in the JVM-based format,
+     *                   or `null` if this property has no getter or its signature is unknown.
+     *                   Example: `JvmMemberSignature.Method("getX()", "Ljava/lang/Object;")`
+     *
+     * @param setterDesc the signature of the property setter in the JVM-based format,
      *                   or `null` if this property has no setter or its signature is unknown
+     *                   Example: `JvmMemberSignature.Method("setX", "(Ljava/lang/Object;)V")`,
      */
     open fun visit(fieldDesc: JvmMemberSignature.Field?, getterDesc: JvmMemberSignature.Method?, setterDesc: JvmMemberSignature.Method?) {
         delegate?.visit(fieldDesc, getterDesc, setterDesc)
     }
 
     /**
-     * Visits the JVM signature of a synthetic method which is generated to store annotations on a property in the bytecode,
-     * in the JVM-based format: `"getX$annotations()V"`
+     * Visits the JVM signature of a synthetic method which is generated to store annotations on a property in the bytecode.
+     *
+     * Example: `JvmMemberSignature.Method("getX$annotations", "()V")`
      *
      * @param desc the signature of the synthetic method
      */
@@ -123,8 +130,10 @@ open class JvmConstructorExtensionVisitor @JvmOverloads constructor(
     private val delegate: JvmConstructorExtensionVisitor? = null
 ) : KmConstructorExtensionVisitor {
     /**
-     * Visits the JVM signature of the constructor, in the JVM-based format: `"<init>(Ljava/lang/Object;)V"`,
+     * Visits the JVM signature of the constructor in the JVM-based format,
      * or null if the JVM signature of this constructor is unknown.
+     *
+     * Example: `JvmMemberSignature.Method("<init>", "(Ljava/lang/Object;)V")`
      *
      * @param desc the signature of the constructor
      */
