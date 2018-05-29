@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.asJava.elements
 
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolder
-import com.intellij.psi.PsiMember
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiTypeElement
 import com.intellij.psi.impl.compiled.ClsRepositoryPsiElement
 import com.intellij.psi.impl.compiled.ClsTypeElementImpl
@@ -24,7 +24,7 @@ val DEFERRED_TYPE_INFO = Key.create<Function0<DeferredTypesTracker.TypeInfo>>("D
 val DEFERRED_CONSTANT_INITIALIZER = Key.create<Function0<Any?>>("DEFERRED_CONSTANT_INITIALIZER")
 
 
-internal fun KtLightMember<*>.computeChildTypeElement(
+internal fun KtLightElement<*, *>.computeChildTypeElement(
     clsDelegateTypeElement: PsiTypeElement?
 ): PsiTypeElement? {
     val delegateTypeElement = clsDelegateTypeElement as? ClsTypeElementImpl
@@ -39,9 +39,9 @@ internal fun KtLightMember<*>.computeChildTypeElement(
 private fun parseJvmDescriptorOrGenericSignature(value: String) =
     SignatureParsing.parseTypeString(StringCharacterIterator(value), StubBuildingVisitor.GUESSING_MAPPER)
 
-internal fun KtLightMember<*>.getDeferredTypeInfoIfExists(): DeferredTypesTracker.TypeInfo? =
+internal fun KtLightElement<*, *>.getDeferredTypeInfoIfExists(): DeferredTypesTracker.TypeInfo? =
     clsDelegate.getUserDataFromStub(DEFERRED_TYPE_INFO)?.invoke()
 
-internal fun <T> PsiMember.getUserDataFromStub(key: Key<T>) =
+internal fun <T> PsiElement.getUserDataFromStub(key: Key<T>) =
     safeAs<ClsRepositoryPsiElement<*>>()?.stub?.safeAs<UserDataHolder>()
         ?.getUserData(key)

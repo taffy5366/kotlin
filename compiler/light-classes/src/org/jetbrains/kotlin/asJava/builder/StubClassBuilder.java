@@ -17,12 +17,12 @@
 package org.jetbrains.kotlin.asJava.builder;
 
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiParameterList;
+import com.intellij.psi.impl.cache.TypeInfo;
 import com.intellij.psi.impl.compiled.InnerClassSourceStrategy;
 import com.intellij.psi.impl.compiled.StubBuildingVisitor;
-import com.intellij.psi.impl.java.stubs.PsiClassStub;
-import com.intellij.psi.impl.java.stubs.PsiFieldStub;
-import com.intellij.psi.impl.java.stubs.PsiJavaFileStub;
-import com.intellij.psi.impl.java.stubs.PsiMethodStub;
+import com.intellij.psi.impl.java.stubs.*;
+import com.intellij.psi.impl.java.stubs.impl.PsiParameterStubImpl;
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.util.containers.Stack;
@@ -206,12 +206,23 @@ public class StubClassBuilder extends AbstractClassBuilder {
                                             (originalElement != null ? originalElement.getText() : null) + " for stub " + last.toString());
         }
 
-        String typeText = null;
         if (last instanceof PsiMethodStub) {
-            typeText = ((PsiMethodStub) last).getReturnTypeText(false).toString();
+            TypeInfo returnTypeText = ((PsiMethodStub) last).getReturnTypeText(false);
+            recordDeferredTypeInfoByTypeText(last, returnTypeText);
+
+            // Check the case of property setter with deferred type
+            if ("void".equals(returnTypeText.toString())) {
+                PsiParameterListStub type =
+                        (PsiParameterListStub) last.<PsiParameterList, PsiParameterListStub>findChildStubByType(JavaStubElementTypes.PARAMETER_LIST);
+                if (type != null && type.getChildrenStubs().size() == 1) {
+                    PsiParameterStubImpl parameter = (PsiParameterStubImpl) type.getChildrenStubs().get(0);
+                    TypeInfo parameterType = parameter.getType(false);
+                    recordDeferredTypeInfoByTypeText(parameter, parameterType);
+                }
+            }
         }
         else if (last instanceof PsiFieldStub) {
-            typeText = ((PsiFieldStub) last).getType(false).toString();
+            recordDeferredTypeInfoByTypeText(last, ((PsiFieldStub) last).getType(false));
 
             if (origin.getDescriptor() instanceof PropertyDescriptor) {
                 last.putUserData(
@@ -224,15 +235,18 @@ public class StubClassBuilder extends AbstractClassBuilder {
             }
         }
 
-        if (typeText != null) {
-            Function0<DeferredTypesTracker.TypeInfo> typeInfo = deferredTypesTracker.getDeferredTypeInfoComputation(typeText);
-            if (typeInfo != null) {
-                last.putUserData(DeferredPartsUtilsKt.DEFERRED_TYPE_INFO, typeInfo);
-            }
-        }
-
         last.putUserData(ClsWrapperStubPsiFactory.ORIGIN, LightElementOriginKt.toLightMemberOrigin(origin));
         last.putUserData(MemberIndex.KEY, new MemberIndex(memberIndex++));
+    }
+
+    private void recordDeferredTypeInfoByTypeText(StubBase last, TypeInfo typeInfo) {
+        String typeText = typeInfo != null ? typeInfo.toString() : null;
+        if (typeText != null) {
+            Function0<DeferredTypesTracker.TypeInfo> deferredTypeInfo = deferredTypesTracker.getDeferredTypeInfoComputation(typeText);
+            if (deferredTypeInfo != null) {
+                last.putUserData(DeferredPartsUtilsKt.DEFERRED_TYPE_INFO, deferredTypeInfo);
+            }
+        }
     }
 
     @Override
