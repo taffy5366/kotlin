@@ -17,10 +17,13 @@ sealed class JvmMemberSignature {
     abstract val desc: String
 
     data class Method(override val name: String, override val desc: String) : JvmMemberSignature() {
-        override fun toString() = name + desc
+        override fun asString() = name + desc
     }
 
     data class Field(override val name: String, override val desc: String) : JvmMemberSignature() {
-        override fun toString() = name + ":" + desc
+        override fun asString() = name + ":" + desc
     }
+
+    final override fun toString() = asString()
+    abstract fun asString(): String
 }
